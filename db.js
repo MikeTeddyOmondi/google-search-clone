@@ -1,41 +1,60 @@
 class SimpleDB {
-    constructor() {
-        this.data = [];
-    }
+  constructor(storageKey = 'searchHistory') {
+    this.storageKey = storageKey;
+    this.data = this.loadData();
+  }
 
-    create(record) {
-        this.data.push(record);
-    }
+  // Load data from localStorage
+  loadData() {
+    const storedData = localStorage.getItem(this.storageKey);
+    return storedData ? JSON.parse(storedData) : [];
+  }
 
-    read() {
-        return this.data;
-    }
+  // Save data to localStorage
+  saveData() {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.data));
+  }
 
-    update(index, newRecord) {
-        if (index >= 0 && index < this.data.length) {
-            this.data[index] = newRecord;
-        } else {
-            console.error('Record not found.');
-        }
-    }
+  create(record) {
+    this.data.push(record);
+    this.saveData();
+    return record.id
+  }
 
-    delete(index) {
-        if (index >= 0 && index < this.data.length) {
-            this.data.splice(index, 1);
-        } else {
-            console.error('Record not found.');
-        }
-    }
+  read() {
+    return this.data;
+  }
 
-    find(index) {
-        if (index >= 0 && index < this.data.length) {
-            return this.data[index];
-        } else {
-            console.error('Record not found.');
-            return null;
-        }
+  update(id, newRecord) {
+    this.data.map(item => 
+        item.id === id ? { ...item, ...newRecord } : item
+    );
+    this.saveData();
+  }
+
+  delete(id) {
+    const index = this.data.findIndex(obj => obj.id === id);
+    if (index !== -1) {
+        this.data.splice(index, 1);
+        this.saveData();
+        return true;
+    } else {
+        console.error(`No record found with id: ${id}`);
+        return false;
     }
+  }
+
+  find(id) {
+    if (id === null) return;
+    const result = this.data.find(item => String(item.id) === id);
+    if (result) {
+        return result;
+    } else {
+        console.error(`No record found with id: ${id}`);
+        return null; 
+    }
+  }
+
 }
 
-// Export the class for use in other modules
 export default SimpleDB;
